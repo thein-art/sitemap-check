@@ -122,44 +122,55 @@ def generate_report(sitemap_url):
         duplicate_urls = find_duplicates(df)
         total_duplicates = len(duplicate_urls)
 
+        # Add a sidebar for filtering
+        first_folder_filter = st.sidebar.selectbox(
+            'Filter by First Folder',
+            options=['All'] + df['first_subfolder'].unique().tolist(),
+            index=0
+        )
+        
+        # Filter the dataframe based on the selected first folder
+        if first_folder_filter != 'All':
+            df = df[df['first_subfolder'] == first_folder_filter]
+        
         # Display Metrics
         st.metric(label="Total URLs in Sitemap", value=total_urls)
         st.metric(label="Total nested Sitemaps", value=nested_sitemaps_count)
         st.metric(label="Total duplicate URLs found", value=total_duplicates)
         st.metric(label="Percentage of HTML documents", value=f"{html_percentage:.2f}%")
-
+        
         # Display rest of the report (Optional)
         # Display URLs per year table
         st.write("URLs per Year:")
         year_data = df.groupby('year').size().reset_index(name='URL Count')
         st.dataframe(year_data)
-
+        
         # Display URLs per file extension table
         st.write("\nURLs per File Extension:")
         file_extension_data = df.groupby('file_extension').size().reset_index(name='URL Count').sort_values(by='URL Count', ascending=False)
         st.dataframe(file_extension_data)
-
+        
         # Display URLs per domain table
         st.write("\nURLs per Domain:")
         domain_data = df.groupby('domain').size().reset_index(name='URL Count').sort_values(by='URL Count', ascending=False)
         st.dataframe(domain_data)
-
+        
         # Display full URL info table
         st.write("\nFull URL Info Table (URL, Last mod, First folder, Second folder):")
         full_info_table = df[['url', 'lastmod', 'first_subfolder', 'second_subfolder']].sort_values(by=['url'])
         st.dataframe(full_info_table)
-
+        
         # Check for duplicates and display duplicate URLs table
         st.write("\nDuplicate URLs (if any):")
         if len(duplicate_urls) > 0:
             st.dataframe(duplicate_urls)
         else:
             st.write("No duplicate URLs found.")
-
-# Streamlit input field and button
-sitemap_url = st.text_input('Enter Sitemap URL', '')
-if st.button('Generate Report'):
-    if sitemap_url:
-        generate_report(sitemap_url)
-    else:
-        st.error("Please enter a valid sitemap URL")
+        
+        # Streamlit input field and button
+        sitemap_url = st.text_input('Enter Sitemap URL', '')
+        if st.button('Generate Report'):
+            if sitemap_url:
+                generate_report(sitemap_url)
+            else:
+                st.error("Please enter a valid sitemap URL")
