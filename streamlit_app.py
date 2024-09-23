@@ -88,60 +88,6 @@ def extract_url_info(df):
 
     return df
 
-# Function to generate a table of total URLs per year
-def urls_per_year(df):
-    year_data = df.groupby('year').size().reset_index(name='URL Count')
-    if year_data.empty:
-        st.write("No valid 'lastmod' data to show URLs per Year.")
-    return year_data
-
-# Function to generate a bar chart of URLs in the last 12 months
-def urls_last_12_months(df):
-    if df['lastmod'].notna().sum() > 0:
-        last_12_months = df[df['lastmod'] >= (pd.Timestamp.now() - pd.DateOffset(months=12)).tz_localize(None)]
-        monthly_count = last_12_months.groupby(last_12_months['lastmod'].dt.to_period('M')).size()
-        if not monthly_count.empty:
-            st.bar_chart(monthly_count)
-        else:
-            st.write("No URLs in the last 12 months to plot.")
-    else:
-        st.write("No 'lastmod' data to plot URLs in the last 12 months.")
-
-# Function to generate a bar chart of URLs per first subfolder
-def urls_per_first_subfolder(df):
-    folder_count = df.groupby('first_subfolder').size().sort_values(ascending=False)
-    if not folder_count.empty:
-        st.bar_chart(folder_count)
-    else:
-        st.write("No subfolders data to plot.")
-
-# Function to generate a bar chart of URLs per second subfolder
-def urls_per_second_subfolder(df):
-    folder_count = df.groupby('second_subfolder').size().sort_values(ascending=False)
-    if not folder_count.empty:
-        st.bar_chart(folder_count)
-    else:
-        st.write("No second subfolder data to plot.")
-
-# Function to generate a table of URLs per file extension
-def urls_per_file_extension(df):
-    file_extension_data = df.groupby('file_extension').size().reset_index(name='URL Count').sort_values(by='URL Count', ascending=False)
-    if file_extension_data.empty:
-        st.write("No file extensions data to show.")
-    return file_extension_data
-
-# Function to generate a table of URLs per domain
-def urls_per_domain(df):
-    domain_data = df.groupby('domain').size().reset_index(name='URL Count').sort_values(by='URL Count', ascending=False)
-    if domain_data.empty:
-        st.write("No domain data to show.")
-    return domain_data
-
-# Function to generate a table with URL, Last mod, First folder, and Second folder
-def generate_full_url_info_table(df):
-    full_info_table = df[['url', 'lastmod', 'first_subfolder', 'second_subfolder']].sort_values(by=['url'])
-    return full_info_table
-
 # Function to find and list duplicate URLs
 def find_duplicates(df):
     duplicate_urls = df[df.duplicated(['url'], keep=False)].sort_values(by=['url'])
@@ -152,6 +98,8 @@ def generate_report(sitemap_url):
     sitemaps_data = fetch_sitemap(sitemap_url)
     
     if sitemaps_data:
+        nested_sitemaps_count = len(sitemaps_data) if isinstance(sitemaps_data, list) else 0
+        
         if isinstance(sitemaps_data, list):
             # If it's a list of multiple sitemaps, concatenate the parsed data
             all_entries = []
@@ -165,37 +113,44 @@ def generate_report(sitemap_url):
 
         df = extract_url_info(df)
 
-        # Display total number of URLs
-        st.write(f"Total number of URLs: {len(df)}")
+        # Find total URLs and percentage of HTML documents
+        total_urls = len(df)
+        total_html_documents = len(df[df['file_extension'] == 'html'])
+        html_percentage = (total_html_documents / total_urls) * 100 if total_urls > 0 else 0
 
+        # Find duplicate URLs
+        duplicate_urls = find_duplicates(df)
+        total_duplicates = len(duplicate_urls)
+
+        # Display Metrics
+        st.metric(label="Total URLs in Sitemap", value=total_urls)
+        st.metric(label="Total nested Sitemaps", value=nested_sitemaps_count)
+        st.metric(label="Total duplicate URLs found", value=total_duplicates)
+        st.metric(label="Percentage of HTML documents", value=f"{html_percentage:.2f}%")
+
+        # Display rest of the report (Optional)
         # Display URLs per year table
         st.write("URLs per Year:")
-        year_data = urls_per_year(df)
+        year_data = df.groupby('year').size().reset_index(name='URL Count')
         st.dataframe(year_data)
-
-        # Generate bar charts
-        urls_last_12_months(df)
-        urls_per_first_subfolder(df)
-        urls_per_second_subfolder(df)
 
         # Display URLs per file extension table
         st.write("\nURLs per File Extension:")
-        file_extension_data = urls_per_file_extension(df)
+        file_extension_data = df.groupby('file_extension').size().reset_index(name='URL Count').sort_values(by='URL Count', ascending=False)
         st.dataframe(file_extension_data)
 
         # Display URLs per domain table
         st.write("\nURLs per Domain:")
-        domain_data = urls_per_domain(df)
+        domain_data = df.groupby('domain').size().reset_index(name='URL Count').sort_values(by='URL Count', ascending=False)
         st.dataframe(domain_data)
 
         # Display full URL info table
         st.write("\nFull URL Info Table (URL, Last mod, First folder, Second folder):")
-        full_info_table = generate_full_url_info_table(df)
+        full_info_table = df[['url', 'lastmod', 'first_subfolder', 'second_subfolder']].sort_values(by=['url'])
         st.dataframe(full_info_table)
 
         # Check for duplicates and display duplicate URLs table
         st.write("\nDuplicate URLs (if any):")
-        duplicate_urls = find_duplicates(df)
         if len(duplicate_urls) > 0:
             st.dataframe(duplicate_urls)
         else:
