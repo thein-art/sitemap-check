@@ -2,7 +2,6 @@
 import requests
 import xml.etree.ElementTree as ET
 import pandas as pd
-import matplotlib.pyplot as plt
 import streamlit as st
 from urllib.parse import urlparse
 import os
