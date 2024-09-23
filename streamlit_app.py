@@ -166,11 +166,13 @@ def generate_report(sitemap_url):
             st.dataframe(duplicate_urls)
         else:
             st.write("No duplicate URLs found.")
-        
-        # Streamlit input field and button
-        sitemap_url = st.text_input('Enter Sitemap URL', '')
-        if st.button('Generate Report'):
-            if sitemap_url:
-                generate_report(sitemap_url)
-            else:
-                st.error("Please enter a valid sitemap URL")
+
+# Streamlit input field and button outside generate_report
+sitemap_url = st.text_input('Enter Sitemap URL', '')
+
+# Button to trigger the report generation
+if st.button('Generate Report'):
+    if sitemap_url:
+        generate_report(sitemap_url)
+    else:
+        st.error("Please enter a valid sitemap URL")
