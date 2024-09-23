@@ -188,7 +188,7 @@ if 'df' in st.session_state:
         # Aggregate data based on the selected time period
         if time_period == 'Year':
             timeline_data = df_filtered.groupby(df_filtered['lastmod'].dt.year).size()
-            timeline_data.index = timeline_data.index.astype(str)  # Ensure proper display of years
+            timeline_data.index = timeline_data.index.astype(int)  # Ensure proper display of years as integers
             st.write("URLs grouped by Year:")
             
         elif time_period == 'Month-Year':
@@ -235,5 +235,3 @@ if 'df' in st.session_state:
         st.dataframe(duplicate_urls_table, use_container_width=True)
     else:
         st.success("No duplicate URLs found.")
-
-
