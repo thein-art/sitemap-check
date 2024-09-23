@@ -93,6 +93,19 @@ def find_duplicates(df):
     duplicate_urls = df[df.duplicated(['url'], keep=False)].sort_values(by=['url'])
     return duplicate_urls
 
+# Function to display the metrics
+def display_metrics(df, nested_sitemaps_count):
+    total_urls = len(df)
+    total_html_documents = len(df[df['file_extension'] == 'html'])
+    html_percentage = (total_html_documents / total_urls) * 100 if total_urls > 0 else 0
+
+    # Display metrics in a row
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric(label="Total URLs in Sitemap", value=total_urls)
+    col2.metric(label="Total nested Sitemaps", value=nested_sitemaps_count)
+    col3.metric(label="Total duplicate URLs found", value=st.session_state['total_duplicates'])
+    col4.metric(label="Percentage of HTML documents", value=f"{html_percentage:.2f}%")
+
 # Main function to generate report from sitemap URL
 def generate_report(sitemap_url):
     sitemaps_data = fetch_sitemap(sitemap_url)
@@ -126,11 +139,8 @@ def generate_report(sitemap_url):
         duplicate_urls = find_duplicates(df)
         st.session_state['total_duplicates'] = len(duplicate_urls)
 
-        # Display metrics
-        st.metric(label="Total URLs in Sitemap", value=total_urls)
-        st.metric(label="Total nested Sitemaps", value=nested_sitemaps_count)
-        st.metric(label="Total duplicate URLs found", value=st.session_state['total_duplicates'])
-        st.metric(label="Percentage of HTML documents", value=f"{html_percentage:.2f}%")
+        # Display metrics in a row
+        display_metrics(df, nested_sitemaps_count)
 
 # Sidebar filter for first subfolder
 def apply_filters():
@@ -157,6 +167,9 @@ if st.button('Generate Report'):
 # If the report has been generated, display the filtered results
 if 'df' in st.session_state:
     df_filtered = apply_filters()
+
+    # Display the metrics after filtering
+    display_metrics(df_filtered, st.session_state['nested_sitemaps_count'])
 
     # Display rest of the report
     st.write("URLs per Year:")
