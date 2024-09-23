@@ -175,7 +175,7 @@ if 'df' in st.session_state:
     if df_filtered['lastmod'].notna().sum() > 0:
         st.write("URLs per Year:")
         year_data = df_filtered.groupby('year').size().reset_index(name='URL Count')
-        st.dataframe(year_data)
+        st.dataframe(year_data, use_container_width=True)
     else:
         st.warning("No 'lastmod' values found in the sitemap.")
         st.write("Explanation: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam quis risus eget urna mollis ornare vel eu leo. Vestibulum id ligula porta felis euismod semper.")
@@ -183,17 +183,17 @@ if 'df' in st.session_state:
     # Display URLs per file extension table
     st.write("\nURLs per File Extension:")
     file_extension_data = df_filtered.groupby('file_extension').size().reset_index(name='URL Count').sort_values(by='URL Count', ascending=False)
-    st.dataframe(file_extension_data)
+    st.dataframe(file_extension_data, use_container_width=True)
 
     # Display URLs per domain table
     st.write("\nURLs per Domain:")
     domain_data = df_filtered.groupby('domain').size().reset_index(name='URL Count').sort_values(by='URL Count', ascending=False)
-    st.dataframe(domain_data)
+    st.dataframe(domain_data, use_container_width=True)
 
     # Display full URL info table
     st.write("\nFull URL Info Table (URL, Last mod, First folder, Second folder):")
     full_info_table = df_filtered[['url', 'lastmod', 'first_subfolder', 'second_subfolder']].sort_values(by=['url'])
-    st.dataframe(full_info_table)
+    st.dataframe(full_info_table, use_container_width=True)
 
     # Check for duplicates and display duplicate URLs table
     if st.session_state['total_duplicates'] > 0:
