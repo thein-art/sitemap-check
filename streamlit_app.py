@@ -193,10 +193,12 @@ if 'df' in st.session_state:
             
         elif time_period == 'Month-Year':
             timeline_data = df_filtered.groupby(df_filtered['lastmod'].dt.to_period('M')).size()
+            timeline_data.index = timeline_data.index.astype(str)  # Convert Period objects to strings
             st.write("URLs grouped by Month-Year:")
             
         elif time_period == 'Day':
             timeline_data = df_filtered.groupby(df_filtered['lastmod'].dt.to_period('D')).size()
+            timeline_data.index = timeline_data.index.astype(str)  # Convert Period objects to strings
             st.write("URLs grouped by Day:")
 
         # Display bar chart
