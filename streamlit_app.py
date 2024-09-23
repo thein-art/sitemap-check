@@ -173,9 +173,34 @@ if 'df' in st.session_state:
 
     # Check if there are any valid lastmod values before displaying the "URLs per Year" table
     if df_filtered['lastmod'].notna().sum() > 0:
-        st.write("URLs per Year:")
-        year_data = df_filtered.groupby('year').size().reset_index(name='URL Count')
-        st.dataframe(year_data, use_container_width=True)
+        total_urls_with_lastmod = df_filtered['lastmod'].notna().sum()
+        total_urls = len(df_filtered)
+        
+        # Display how many URLs have lastmod
+        st.write(f"{total_urls_with_lastmod} out of {total_urls} URLs have 'lastmod' values.")
+        
+        # Select period for aggregation
+        time_period = st.selectbox(
+            'Select time period to group URLs by:',
+            options=['Year', 'Month-Year', 'Day']
+        )
+
+        # Aggregate data based on the selected time period
+        if time_period == 'Year':
+            timeline_data = df_filtered.groupby(df_filtered['lastmod'].dt.year).size()
+            timeline_data.index = timeline_data.index.astype(str)  # Ensure proper display of years
+            st.write("URLs grouped by Year:")
+            
+        elif time_period == 'Month-Year':
+            timeline_data = df_filtered.groupby(df_filtered['lastmod'].dt.to_period('M')).size()
+            st.write("URLs grouped by Month-Year:")
+            
+        elif time_period == 'Day':
+            timeline_data = df_filtered.groupby(df_filtered['lastmod'].dt.to_period('D')).size()
+            st.write("URLs grouped by Day:")
+
+        # Display bar chart
+        st.bar_chart(timeline_data)
     else:
         st.warning("No 'lastmod' values found in the sitemap.")
         st.write("Explanation: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam quis risus eget urna mollis ornare vel eu leo. Vestibulum id ligula porta felis euismod semper.")
@@ -183,17 +208,17 @@ if 'df' in st.session_state:
     # Display URLs per file extension table
     st.write("\nURLs per File Extension:")
     file_extension_data = df_filtered.groupby('file_extension').size().reset_index(name='URL Count').sort_values(by='URL Count', ascending=False)
-    st.dataframe(file_extension_data, use_container_width=True)
+    st.dataframe(file_extension_data)
 
     # Display URLs per domain table
     st.write("\nURLs per Domain:")
     domain_data = df_filtered.groupby('domain').size().reset_index(name='URL Count').sort_values(by='URL Count', ascending=False)
-    st.dataframe(domain_data, use_container_width=True)
+    st.dataframe(domain_data)
 
     # Display full URL info table
     st.write("\nFull URL Info Table (URL, Last mod, First folder, Second folder):")
     full_info_table = df_filtered[['url', 'lastmod', 'first_subfolder', 'second_subfolder']].sort_values(by=['url'])
-    st.dataframe(full_info_table, use_container_width=True)
+    st.dataframe(full_info_table)
 
     # Check for duplicates and display duplicate URLs table
     if st.session_state['total_duplicates'] > 0:
@@ -210,4 +235,5 @@ if 'df' in st.session_state:
         st.dataframe(duplicate_urls_table, use_container_width=True)
     else:
         st.success("No duplicate URLs found.")
+
 
