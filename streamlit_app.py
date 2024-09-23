@@ -196,9 +196,18 @@ if 'df' in st.session_state:
     st.dataframe(full_info_table)
 
     # Check for duplicates and display duplicate URLs table
-    st.write("\nDuplicate URLs (if any):")
     if st.session_state['total_duplicates'] > 0:
+        st.write("Duplicate URLs Found:")
         duplicate_urls = find_duplicates(df_filtered)
-        st.dataframe(duplicate_urls)
+
+        # Create a table with URL and Referenced Sitemap
+        duplicate_urls_table = pd.DataFrame({
+            'URL': duplicate_urls['url'],
+            'Referenced Sitemap': [sitemap_url] * len(duplicate_urls)  # Assuming all duplicates are from the same sitemap
+        })
+
+        # Use Streamlit's full-width table display
+        st.dataframe(duplicate_urls_table, use_container_width=True)
     else:
-        st.write("No duplicate URLs found.")
+        st.success("No duplicate URLs found.")
+
