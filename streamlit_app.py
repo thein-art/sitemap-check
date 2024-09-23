@@ -171,10 +171,14 @@ if 'df' in st.session_state:
     # Display the metrics after filtering
     display_metrics(df_filtered, st.session_state['nested_sitemaps_count'])
 
-    # Display rest of the report
-    st.write("URLs per Year:")
-    year_data = df_filtered.groupby('year').size().reset_index(name='URL Count')
-    st.dataframe(year_data)
+    # Check if there are any valid lastmod values before displaying the "URLs per Year" table
+    if df_filtered['lastmod'].notna().sum() > 0:
+        st.write("URLs per Year:")
+        year_data = df_filtered.groupby('year').size().reset_index(name='URL Count')
+        st.dataframe(year_data)
+    else:
+        st.warning("No 'lastmod' values found in the sitemap.")
+        st.write("Explanation: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam quis risus eget urna mollis ornare vel eu leo. Vestibulum id ligula porta felis euismod semper.")
 
     # Display URLs per file extension table
     st.write("\nURLs per File Extension:")
